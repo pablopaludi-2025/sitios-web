@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Plus, ExternalLink, Copy, Check, RefreshCw } from 'lucide-react'
+import { Search, Plus, ExternalLink, Copy, Check, RefreshCw, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { Client } from '@/types'
-import { RUBRO_ICONS, RUBRO_LABELS, RUBRO_COLORS } from '@/types'
+import { RUBRO_ICONS, RUBRO_LABELS } from '@/types'
 import type { ProductKey } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +26,12 @@ const PRODUCT_LABELS: Record<ProductKey, string> = {
   video_ia: 'Videos con IA',
   redes_sociales: 'Redes Sociales',
   plan_contenido: 'Plan de Contenido',
+}
+
+const PLAN_LABELS: Record<string, string> = {
+  redes_chatbot: 'Redes + Chatbot',
+  presencia_web: 'Presencia Web',
+  venta_online: 'Venta Online Completa',
 }
 
 const RUBROS = [
@@ -195,7 +201,7 @@ export default function ClientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-foreground">Clientes</h1>
-          <p className="text-muted-foreground mt-1">{clients.length} clientes en total</p>
+          <p className="text-muted-foreground mt-1">Gestioná tus clientes y sus productos habilitados</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <Plus size={16} /> Nuevo Cliente
@@ -236,7 +242,6 @@ export default function ClientsPage() {
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(client => {
-            const colors = RUBRO_COLORS[client.rubro]
             const siteUrl = `${window.location.origin}/site/${client.slug}`
             return (
               <Card
@@ -244,8 +249,8 @@ export default function ClientsPage() {
                 className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => setSelectedClient(client)}
               >
-                <div className={`h-1.5 bg-gradient-to-r ${colors.from} ${colors.to}`} />
                 <CardContent className="p-4 space-y-3">
+                  {/* Header row: emoji + name + status badge */}
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{RUBRO_ICONS[client.rubro]}</span>
@@ -261,7 +266,11 @@ export default function ClientsPage() {
                     </Badge>
                   </div>
 
-                  <p className="text-xs text-muted-foreground">{client.email}</p>
+                  {/* Email */}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Mail size={12} />
+                    <span>{client.email}</span>
+                  </div>
 
                   {/* Site URL */}
                   <div className="flex items-center gap-1 bg-muted/50 rounded-lg px-2 py-1.5" onClick={e => e.stopPropagation()}>
@@ -282,27 +291,37 @@ export default function ClientsPage() {
                     </button>
                   </div>
 
-                  {/* Enabled products badges */}
+                  {/* Enabled products — outline badges */}
                   {(client.enabled_products ?? []).length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {(client.enabled_products ?? []).map(p => (
-                        <Badge key={p} variant="secondary" className="text-xs">{PRODUCT_LABELS[p]}</Badge>
+                        <Badge key={p} variant="outline" className="text-xs">{PRODUCT_LABELS[p]}</Badge>
                       ))}
                     </div>
                   )}
 
-                  {/* Integrations */}
-                  <div className="flex gap-1 flex-wrap">
-                    {client.chatbot_enabled && <Badge variant="default" className="text-xs">🤖 Chatbot IA</Badge>}
-                    {client.ecommerce_enabled && <Badge variant="default" className="text-xs">🛒 E-commerce</Badge>}
-                    {client.mercadopago_enabled && <Badge variant="default" className="text-xs">💳 Mercado Pago</Badge>}
-                  </div>
+                  {/* Integrations — outline with green accent */}
+                  {(client.chatbot_enabled || client.ecommerce_enabled || client.mercadopago_enabled) && (
+                    <div className="flex gap-1 flex-wrap">
+                      {client.chatbot_enabled && (
+                        <Badge variant="outline" className="text-xs border-green-500 text-green-700 dark:text-green-400">🤖 Chatbot IA</Badge>
+                      )}
+                      {client.ecommerce_enabled && (
+                        <Badge variant="outline" className="text-xs border-green-500 text-green-700 dark:text-green-400">🛒 E-commerce</Badge>
+                      )}
+                      {client.mercadopago_enabled && (
+                        <Badge variant="outline" className="text-xs border-blue-500 text-blue-700 dark:text-blue-400">💳 Mercado Pago</Badge>
+                      )}
+                    </div>
+                  )}
 
-                  {/* Fees */}
-                  {(client.setup_fee > 0 || client.monthly_fee > 0) && (
-                    <div className="flex gap-3 text-xs text-muted-foreground">
-                      {client.setup_fee > 0 && <span>Setup: <strong>${client.setup_fee.toLocaleString('es-AR')}</strong></span>}
-                      {client.monthly_fee > 0 && <span>Mensual: <strong>${client.monthly_fee.toLocaleString('es-AR')}</strong></span>}
+                  {/* Plan + price footer */}
+                  {client.monthly_fee > 0 && (
+                    <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+                      <span className="text-muted-foreground">
+                        {client.plan ? PLAN_LABELS[client.plan] ?? client.plan : 'Sin plan asignado'}
+                      </span>
+                      <span className="font-black text-foreground">${client.monthly_fee.toLocaleString('es-AR')}/mes</span>
                     </div>
                   )}
                 </CardContent>

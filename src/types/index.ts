@@ -22,15 +22,15 @@ export const RUBRO_ICONS: Record<Rubro, string> = {
   otro: '🏢',
 }
 
-export const RUBRO_COLORS: Record<Rubro, { from: string; to: string; badge: string }> = {
-  pizzeria: { from: 'from-orange-500', to: 'to-red-500', badge: 'bg-orange-100 text-orange-700' },
-  veterinaria: { from: 'from-emerald-500', to: 'to-teal-500', badge: 'bg-emerald-100 text-emerald-700' },
-  bar: { from: 'from-purple-600', to: 'to-indigo-600', badge: 'bg-purple-100 text-purple-700' },
-  heladeria: { from: 'from-pink-400', to: 'to-rose-500', badge: 'bg-pink-100 text-pink-700' },
-  restaurant: { from: 'from-amber-500', to: 'to-orange-500', badge: 'bg-amber-100 text-amber-700' },
-  peluqueria: { from: 'from-fuchsia-500', to: 'to-pink-500', badge: 'bg-fuchsia-100 text-fuchsia-700' },
-  gym: { from: 'from-blue-600', to: 'to-cyan-500', badge: 'bg-blue-100 text-blue-700' },
-  otro: { from: 'from-gray-600', to: 'to-slate-600', badge: 'bg-gray-100 text-gray-700' },
+export const RUBRO_COLORS: Record<Rubro, { from: string; to: string; badge: string; solid: string }> = {
+  pizzeria:   { from: 'from-orange-500', to: 'to-red-500',     badge: 'bg-orange-100 text-orange-700',   solid: 'bg-red-600' },
+  veterinaria:{ from: 'from-emerald-500',to: 'to-teal-500',    badge: 'bg-emerald-100 text-emerald-700', solid: 'bg-green-600' },
+  bar:        { from: 'from-purple-600', to: 'to-indigo-600',  badge: 'bg-purple-100 text-purple-700',   solid: 'bg-violet-700' },
+  heladeria:  { from: 'from-pink-400',   to: 'to-rose-500',    badge: 'bg-pink-100 text-pink-700',       solid: 'bg-amber-600' },
+  restaurant: { from: 'from-amber-500',  to: 'to-orange-500',  badge: 'bg-amber-100 text-amber-700',     solid: 'bg-orange-500' },
+  peluqueria: { from: 'from-fuchsia-500',to: 'to-pink-500',    badge: 'bg-fuchsia-100 text-fuchsia-700', solid: 'bg-fuchsia-600' },
+  gym:        { from: 'from-blue-600',   to: 'to-cyan-500',    badge: 'bg-blue-100 text-blue-700',       solid: 'bg-blue-600' },
+  otro:       { from: 'from-gray-600',   to: 'to-slate-600',   badge: 'bg-gray-100 text-gray-700',       solid: 'bg-slate-600' },
 }
 
 export type ProductKey = 'landing' | 'catalogo' | 'ecommerce' | 'chatbot' | 'video_ia' | 'redes_sociales' | 'plan_contenido'

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Eye, Edit2, Save, GripVertical } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { mockTemplates, SECTION_TYPE_LABELS } from '@/lib/mock-data'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
@@ -37,8 +38,8 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-foreground">Templates</h1>
-        <p className="text-muted-foreground mt-1">Administrá los diseños de sitios web para tus clientes</p>
+        <h1 className="text-2xl font-black text-foreground">Templates por Rubro</h1>
+        <p className="text-muted-foreground mt-1">Templates prediseñados para cada tipo de negocio. Editá textos, fotos y secciones.</p>
       </div>
 
       {editTemplate ? (
@@ -111,25 +112,23 @@ export default function TemplatesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map(template => {
             const colors = RUBRO_COLORS[template.rubro]
             return (
               <Card key={template.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className={`h-2 bg-gradient-to-r ${colors.from} ${colors.to}`} />
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{RUBRO_ICONS[template.rubro]}</span>
-                    <div>
-                      <CardTitle className="text-base">{template.name}</CardTitle>
-                    </div>
+                {/* Colored header block with emoji */}
+                <div className={cn('relative h-28 flex items-end p-4', colors.solid)}>
+                  <span className="text-5xl select-none">{RUBRO_ICONS[template.rubro]}</span>
+                </div>
+                <CardContent className="p-4 space-y-3">
+                  <div>
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    <CardDescription className="text-xs mt-1">{template.description}</CardDescription>
                   </div>
-                  <CardDescription className="text-xs">{template.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-3">
                   <div className="flex flex-wrap gap-1">
                     {template.sections.filter(s => s.visible).map(s => (
-                      <Badge key={s.id} variant="secondary" className="text-xs">
+                      <Badge key={s.id} variant="outline" className="text-xs">
                         {SECTION_TYPE_LABELS[s.type] ?? s.type}
                       </Badge>
                     ))}
