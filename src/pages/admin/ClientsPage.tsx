@@ -73,7 +73,6 @@ export default function ClientsPage() {
     e.preventDefault()
     setCreating(true)
     try {
-      // Create client record
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
         .insert({
@@ -96,7 +95,6 @@ export default function ClientsPage() {
 
       if (clientError) throw clientError
 
-      // Create user via edge function
       const { error: fnError } = await supabase.functions.invoke('create-client-user', {
         body: {
           email: form.email,
@@ -163,7 +161,6 @@ export default function ClientsPage() {
       })
       if (error) throw error
 
-      // Poll for job status
       if (pollRef.current) clearInterval(pollRef.current)
       pollRef.current = setInterval(async () => {
         const { data } = await supabase
@@ -197,8 +194,8 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[hsl(240,10%,12%)]">Clientes</h1>
-          <p className="text-[hsl(240,5%,45%)] mt-1">{clients.length} clientes en total</p>
+          <h1 className="text-2xl font-black text-foreground">Clientes</h1>
+          <p className="text-muted-foreground mt-1">{clients.length} clientes en total</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <Plus size={16} /> Nuevo Cliente
@@ -208,7 +205,7 @@ export default function ClientsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(240,5%,45%)]" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre o email..."
             value={search}
@@ -231,10 +228,10 @@ export default function ClientsPage() {
 
       {/* Clients Grid */}
       {loading ? (
-        <p className="text-[hsl(240,5%,45%)]">Cargando clientes...</p>
+        <p className="text-muted-foreground">Cargando clientes...</p>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-[hsl(240,5%,45%)]">No se encontraron clientes.</p>
+          <p className="text-muted-foreground">No se encontraron clientes.</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -253,8 +250,8 @@ export default function ClientsPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{RUBRO_ICONS[client.rubro]}</span>
                       <div>
-                        <p className="font-bold text-[hsl(240,10%,12%)]">{client.name}</p>
-                        <p className="text-xs text-[hsl(240,5%,45%)]">{RUBRO_LABELS[client.rubro]}</p>
+                        <p className="font-bold text-foreground">{client.name}</p>
+                        <p className="text-xs text-muted-foreground">{RUBRO_LABELS[client.rubro]}</p>
                       </div>
                     </div>
                     <Badge
@@ -264,24 +261,24 @@ export default function ClientsPage() {
                     </Badge>
                   </div>
 
-                  <p className="text-xs text-[hsl(240,5%,45%)]">{client.email}</p>
+                  <p className="text-xs text-muted-foreground">{client.email}</p>
 
                   {/* Site URL */}
-                  <div className="flex items-center gap-1 bg-[hsl(240,5%,97%)] rounded-lg px-2 py-1.5" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 bg-muted/50 rounded-lg px-2 py-1.5" onClick={e => e.stopPropagation()}>
                     <a
                       href={siteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[hsl(262,83%,58%)] hover:underline flex-1 truncate flex items-center gap-1"
+                      className="text-xs text-primary hover:underline flex-1 truncate flex items-center gap-1"
                     >
                       <ExternalLink size={10} />
                       /site/{client.slug}
                     </a>
                     <button
                       onClick={() => copyUrl(client.slug)}
-                      className="p-1 hover:bg-[hsl(240,5%,90%)] rounded transition-colors"
+                      className="p-1 hover:bg-muted rounded transition-colors"
                     >
-                      {copied === client.slug ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                      {copied === client.slug ? <Check size={12} className="text-success" /> : <Copy size={12} />}
                     </button>
                   </div>
 
@@ -303,7 +300,7 @@ export default function ClientsPage() {
 
                   {/* Fees */}
                   {(client.setup_fee > 0 || client.monthly_fee > 0) && (
-                    <div className="flex gap-3 text-xs text-[hsl(240,5%,45%)]">
+                    <div className="flex gap-3 text-xs text-muted-foreground">
                       {client.setup_fee > 0 && <span>Setup: <strong>${client.setup_fee.toLocaleString('es-AR')}</strong></span>}
                       {client.monthly_fee > 0 && <span>Mensual: <strong>${client.monthly_fee.toLocaleString('es-AR')}</strong></span>}
                     </div>
@@ -398,7 +395,7 @@ export default function ClientsPage() {
               <div className="space-y-6 pr-2">
                 {/* Products */}
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wide text-[hsl(240,5%,45%)] mb-3">Productos habilitados</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">Productos habilitados</h3>
                   <div className="space-y-2">
                     {(Object.keys(PRODUCT_LABELS) as ProductKey[]).map(product => (
                       <div key={product} className="flex items-center justify-between py-1">
@@ -413,7 +410,7 @@ export default function ClientsPage() {
 
                   {/* Content plan generation */}
                   {(selectedClient.enabled_products ?? []).includes('plan_contenido') && (
-                    <div className="mt-3 p-3 bg-purple-50 rounded-xl space-y-2">
+                    <div className="mt-3 p-3 bg-primary/10 rounded-lg space-y-2">
                       <Button
                         size="sm"
                         className="w-full"
@@ -429,7 +426,7 @@ export default function ClientsPage() {
                       {contentJobProgress !== null && (
                         <div className="space-y-1">
                           <Progress value={contentJobProgress} />
-                          <p className="text-xs text-[hsl(240,5%,45%)] text-center">
+                          <p className="text-xs text-muted-foreground text-center">
                             {contentJobStatus === 'generating_text' && 'Generando textos...'}
                             {contentJobStatus === 'generating_images' && 'Generando imágenes...'}
                             {contentJobStatus === 'completed' && '¡Completado!'}
@@ -445,7 +442,7 @@ export default function ClientsPage() {
 
                 {/* Integrations */}
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wide text-[hsl(240,5%,45%)] mb-3">Integraciones</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">Integraciones</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between py-1">
                       <span className="text-sm font-semibold">🤖 Chatbot IA</span>
@@ -475,7 +472,7 @@ export default function ClientsPage() {
 
                 {/* Pricing */}
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wide text-[hsl(240,5%,45%)] mb-3">Precios</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">Precios</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Setup fee ($)</Label>
@@ -500,7 +497,7 @@ export default function ClientsPage() {
 
                 {/* Status */}
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wide text-[hsl(240,5%,45%)] mb-3">Estado</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">Estado</h3>
                   <Select
                     value={selectedClient.status}
                     onValueChange={v => updateClient(selectedClient.id, { status: v as Client['status'] })}
@@ -520,7 +517,7 @@ export default function ClientsPage() {
                   <Link
                     to={`/site/${selectedClient.slug}`}
                     target="_blank"
-                    className="text-sm text-[hsl(262,83%,58%)] hover:underline flex items-center gap-1"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
                   >
                     <ExternalLink size={14} />
                     Ver sitio público

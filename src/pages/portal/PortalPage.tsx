@@ -37,7 +37,7 @@ export default function PortalPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-2">
           <div className="text-4xl animate-spin">✨</div>
-          <p className="text-[hsl(240,5%,45%)]">Cargando tu portal...</p>
+          <p className="text-muted-foreground">Cargando tu portal...</p>
         </div>
       </div>
     )
@@ -46,7 +46,7 @@ export default function PortalPage() {
   if (!client) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-[hsl(240,5%,45%)]">No se encontró tu negocio. Contactá con el administrador.</p>
+        <p className="text-muted-foreground">No se encontró tu negocio. Contactá con el administrador.</p>
       </div>
     )
   }
@@ -66,15 +66,15 @@ export default function PortalPage() {
   const defaultTab = tabs[0] ?? 'contenido'
 
   return (
-    <div className="min-h-screen bg-[hsl(0,0%,99%)]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[hsl(240,6%,90%)] shadow-sm">
+      <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{RUBRO_ICONS[client.rubro]}</span>
             <div>
-              <span className="font-black text-[hsl(240,10%,12%)]">{client.name}</span>
-              <span className="hidden sm:inline text-xs text-[hsl(240,5%,45%)] ml-2">Portal de gestión</span>
+              <span className="font-black text-foreground">{client.name}</span>
+              <span className="hidden sm:inline text-xs text-muted-foreground ml-2">Portal de gestión</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function PortalPage() {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {tabs.length === 0 ? (
-          <div className="text-center py-16 text-[hsl(240,5%,45%)]">
+          <div className="text-center py-16 text-muted-foreground">
             <div className="text-5xl mb-4">✨</div>
             <p className="text-lg font-bold">Tu portal está siendo configurado</p>
             <p className="text-sm mt-1">Próximamente vas a tener acceso a todas las herramientas.</p>
@@ -271,14 +271,14 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
     setEditCopy('')
   }
 
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando contenido...</p>
+  if (loading) return <p className="text-muted-foreground">Cargando contenido...</p>
 
   if (posts.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-4">📅</div>
-        <p className="font-bold text-[hsl(240,10%,12%)]">No hay plan de contenido generado aún</p>
-        <p className="text-sm text-[hsl(240,5%,45%)] mt-1">El administrador puede generar tu plan desde el panel.</p>
+        <p className="font-bold text-foreground">No hay plan de contenido generado aún</p>
+        <p className="text-sm text-muted-foreground mt-1">El administrador puede generar tu plan desde el panel.</p>
       </div>
     )
   }
@@ -286,7 +286,7 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[hsl(240,5%,45%)]">{posts.length} posts en tu plan</p>
+        <p className="text-sm text-muted-foreground">{posts.length} posts en tu plan</p>
         <Button variant="outline" size="sm" onClick={downloadAllZip} disabled={downloadingZip}>
           <Download size={14} />
           {downloadingZip ? 'Generando ZIP...' : 'Descargar todo (ZIP)'}
@@ -297,11 +297,11 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
         {posts.map(post => (
           <Card key={post.id} className="overflow-hidden">
             {/* Image area - aspect 4:5 */}
-            <div className="relative bg-[hsl(240,5%,94%)]" style={{ aspectRatio: '4/5' }}>
+            <div className="relative bg-muted" style={{ aspectRatio: '4/5' }}>
               {post.image_url ? (
                 <img src={post.image_url} alt={`Día ${post.day}`} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[hsl(240,5%,45%)] text-sm">
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
                   Sin imagen
                 </div>
               )}
@@ -309,14 +309,14 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
               <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                 <div className="flex gap-2">
                   <div className="bg-white rounded-full p-2">
-                    <Upload size={16} className="text-[hsl(240,10%,12%)]" />
+                    <Upload size={16} className="text-foreground" />
                   </div>
                   {post.image_url && (
                     <button
                       className="bg-white rounded-full p-2"
                       onClick={e => { e.preventDefault(); downloadImage(post.image_url!, post.day) }}
                     >
-                      <Download size={16} className="text-[hsl(240,10%,12%)]" />
+                      <Download size={16} className="text-foreground" />
                     </button>
                   )}
                 </div>
@@ -328,11 +328,11 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
               <div className="flex items-center justify-between">
                 <Badge variant="secondary">Día {post.day}</Badge>
                 {post.scheduled_date && (
-                  <span className="text-xs text-[hsl(240,5%,45%)]">{post.scheduled_date}</span>
+                  <span className="text-xs text-muted-foreground">{post.scheduled_date}</span>
                 )}
               </div>
               {post.photo_name && (
-                <p className="text-xs font-semibold text-[hsl(262,83%,58%)]">{post.photo_name}</p>
+                <p className="text-xs font-semibold text-primary">{post.photo_name}</p>
               )}
 
               {/* Copy section - editable */}
@@ -355,18 +355,18 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
                 </div>
               ) : (
                 <div className="group relative">
-                  <p className="text-xs text-[hsl(240,5%,45%)] line-clamp-4">{post.copy}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-4">{post.copy}</p>
                   <div className="flex gap-1 mt-1">
                     <button
                       onClick={() => copyCopy(post.id, post.copy)}
-                      className="flex items-center gap-1 text-xs text-[hsl(262,83%,58%)] hover:underline"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
                     >
                       {copied === post.id ? <Check size={10} /> : <Copy size={10} />}
                       {copied === post.id ? 'Copiado' : 'Copiar copy'}
                     </button>
                     <button
                       onClick={() => startEditCopy(post)}
-                      className="flex items-center gap-1 text-xs text-[hsl(240,5%,45%)] hover:text-[hsl(262,83%,58%)] ml-auto"
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary ml-auto"
                     >
                       <Edit2 size={10} /> Editar
                     </button>
@@ -445,12 +445,12 @@ function CatalogTab({ clientId }: { clientId: string }) {
     updateProduct(productId, 'image_url', publicUrl)
   }
 
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando catálogo...</p>
+  if (loading) return <p className="text-muted-foreground">Cargando catálogo...</p>
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[hsl(240,5%,45%)]">{products.length} productos</p>
+        <p className="text-sm text-muted-foreground">{products.length} productos</p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={addProduct}>
             <Plus size={14} /> Agregar
@@ -467,7 +467,7 @@ function CatalogTab({ clientId }: { clientId: string }) {
             <CardContent className="p-4">
               <div className="flex gap-4">
                 {/* Image */}
-                <div className="relative shrink-0 w-20 h-20 bg-[hsl(240,5%,94%)] rounded-xl overflow-hidden">
+                <div className="relative shrink-0 w-20 h-20 bg-muted rounded-xl overflow-hidden">
                   {product.image_url ? (
                     <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
@@ -488,7 +488,7 @@ function CatalogTab({ clientId }: { clientId: string }) {
                     className="text-sm"
                   />
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(240,5%,45%)] text-sm">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
                     <Input
                       type="number"
                       placeholder="Precio"
@@ -513,7 +513,7 @@ function CatalogTab({ clientId }: { clientId: string }) {
                   />
                   <button
                     onClick={() => removeProduct(product.id)}
-                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-destructive/60 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -523,7 +523,7 @@ function CatalogTab({ clientId }: { clientId: string }) {
           </Card>
         ))}
         {products.length === 0 && (
-          <p className="text-center text-[hsl(240,5%,45%)] py-8">No hay productos. ¡Agregá el primero!</p>
+          <p className="text-center text-muted-foreground py-8">No hay productos. ¡Agregá el primero!</p>
         )}
       </div>
     </div>
@@ -561,14 +561,14 @@ function OrdersTab({ clientId }: { clientId: string }) {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: status as Order['status'] } : o))
   }
 
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando pedidos...</p>
+  if (loading) return <p className="text-muted-foreground">Cargando pedidos...</p>
 
   if (orders.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-4">📦</div>
-        <p className="font-bold text-[hsl(240,10%,12%)]">No hay pedidos aún</p>
-        <p className="text-sm text-[hsl(240,5%,45%)] mt-1">Los pedidos de tu tienda aparecerán acá.</p>
+        <p className="font-bold text-foreground">No hay pedidos aún</p>
+        <p className="text-sm text-muted-foreground mt-1">Los pedidos de tu tienda aparecerán acá.</p>
       </div>
     )
   }
@@ -586,16 +586,16 @@ function OrdersTab({ clientId }: { clientId: string }) {
                     {ORDER_STATUS_LABELS[order.status]}
                   </Badge>
                 </div>
-                <p className="text-xs text-[hsl(240,5%,45%)]">{order.customer_email} · {order.customer_phone}</p>
+                <p className="text-xs text-muted-foreground">{order.customer_email} · {order.customer_phone}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {order.items.map((item, i) => (
                     <Badge key={i} variant="secondary" className="text-xs">{item.quantity}× {item.name}</Badge>
                   ))}
                 </div>
-                <p className="text-xs text-[hsl(240,5%,45%)]">{new Date(order.created_at).toLocaleDateString('es-AR')}</p>
+                <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('es-AR')}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-black text-[hsl(262,83%,58%)]">${order.total.toLocaleString('es-AR')}</span>
+                <span className="font-black text-primary">${order.total.toLocaleString('es-AR')}</span>
                 <Select value={order.status} onValueChange={v => updateStatus(order.id, v)}>
                   <SelectTrigger className="w-36 text-xs h-8">
                     <SelectValue />
@@ -657,13 +657,13 @@ function LandingTab({ templateId, siteUrl }: { clientId: string; templateId?: st
     setSaving(false)
   }
 
-  if (!templateId) return <p className="text-[hsl(240,5%,45%)]">No tenés un template asignado.</p>
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando...</p>
+  if (!templateId) return <p className="text-muted-foreground">No tenés un template asignado.</p>
+  if (loading) return <p className="text-muted-foreground">Cargando...</p>
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[hsl(240,5%,45%)]">{sections.length} secciones</p>
+        <p className="text-sm text-muted-foreground">{sections.length} secciones</p>
         <div className="flex gap-2">
           <a href={siteUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm"><ExternalLink size={14} /> Ver sitio</Button>
@@ -680,7 +680,7 @@ function LandingTab({ templateId, siteUrl }: { clientId: string; templateId?: st
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{section.type}</Badge>
                 <Switch checked={section.visible} onCheckedChange={v => updateSection(section.id, 'visible', v)} />
-                <span className="text-xs text-[hsl(240,5%,45%)]">{section.visible ? 'Visible' : 'Oculta'}</span>
+                <span className="text-xs text-muted-foreground">{section.visible ? 'Visible' : 'Oculta'}</span>
               </div>
               <Input placeholder="Título" value={section.title ?? ''} onChange={e => updateSection(section.id, 'title', e.target.value)} />
               <Textarea placeholder="Contenido" value={section.content ?? ''} onChange={e => updateSection(section.id, 'content', e.target.value)} rows={3} />
@@ -711,14 +711,14 @@ function ConversationsTab({ clientId }: { clientId: string }) {
       })
   }, [clientId])
 
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando conversaciones...</p>
+  if (loading) return <p className="text-muted-foreground">Cargando conversaciones...</p>
 
   if (conversations.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-4">💬</div>
-        <p className="font-bold text-[hsl(240,10%,12%)]">No hay conversaciones aún</p>
-        <p className="text-sm text-[hsl(240,5%,45%)] mt-1">Las conversaciones del chatbot aparecerán acá.</p>
+        <p className="font-bold text-foreground">No hay conversaciones aún</p>
+        <p className="text-sm text-muted-foreground mt-1">Las conversaciones del chatbot aparecerán acá.</p>
       </div>
     )
   }
@@ -729,19 +729,19 @@ function ConversationsTab({ clientId }: { clientId: string }) {
         {conversations.map(conv => (
           <Card
             key={conv.id}
-            className={`cursor-pointer hover:shadow-md transition-shadow ${selected?.id === conv.id ? 'ring-2 ring-[hsl(262,83%,58%)]' : ''}`}
+            className={`cursor-pointer hover:shadow-md transition-shadow ${selected?.id === conv.id ? 'ring-2 ring-primary' : ''}`}
             onClick={() => setSelected(conv)}
           >
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-bold text-sm">{conv.visitor_name ?? 'Visitante anónimo'}</p>
-                  {conv.visitor_email && <p className="text-xs text-[hsl(240,5%,45%)]">{conv.visitor_email}</p>}
-                  {conv.visitor_phone && <p className="text-xs text-[hsl(240,5%,45%)]">{conv.visitor_phone}</p>}
+                  {conv.visitor_email && <p className="text-xs text-muted-foreground">{conv.visitor_email}</p>}
+                  {conv.visitor_phone && <p className="text-xs text-muted-foreground">{conv.visitor_phone}</p>}
                 </div>
                 <div className="text-right">
                   <Badge variant="secondary">{conv.messages.length} msgs</Badge>
-                  <p className="text-xs text-[hsl(240,5%,45%)] mt-1">{new Date(conv.updated_at).toLocaleDateString('es-AR')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(conv.updated_at).toLocaleDateString('es-AR')}</p>
                 </div>
               </div>
             </CardContent>
@@ -753,13 +753,13 @@ function ConversationsTab({ clientId }: { clientId: string }) {
           <CardContent className="p-4 space-y-3">
             <div>
               <p className="font-bold">{selected.visitor_name ?? 'Visitante'}</p>
-              {selected.visitor_email && <p className="text-xs text-[hsl(240,5%,45%)]">{selected.visitor_email}</p>}
+              {selected.visitor_email && <p className="text-xs text-muted-foreground">{selected.visitor_email}</p>}
             </div>
             <ScrollArea className="h-64">
               <div className="space-y-2 pr-2">
                 {selected.messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs ${msg.role === 'user' ? 'bg-[hsl(262,83%,58%)] text-white' : 'bg-[hsl(240,5%,94%)] text-[hsl(240,10%,12%)]'}`}>
+                    <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>
                       {msg.content}
                     </div>
                   </div>
@@ -791,14 +791,14 @@ function LeadsTab({ clientId }: { clientId: string }) {
       })
   }, [clientId])
 
-  if (loading) return <p className="text-[hsl(240,5%,45%)]">Cargando leads...</p>
+  if (loading) return <p className="text-muted-foreground">Cargando leads...</p>
 
   if (leads.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-4">👥</div>
-        <p className="font-bold text-[hsl(240,10%,12%)]">No hay leads aún</p>
-        <p className="text-sm text-[hsl(240,5%,45%)] mt-1">Los contactos capturados por el chatbot aparecerán acá.</p>
+        <p className="font-bold text-foreground">No hay leads aún</p>
+        <p className="text-sm text-muted-foreground mt-1">Los contactos capturados por el chatbot aparecerán acá.</p>
       </div>
     )
   }
@@ -807,21 +807,21 @@ function LeadsTab({ clientId }: { clientId: string }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-[hsl(240,6%,90%)]">
-            <th className="text-left py-3 px-2 font-bold text-[hsl(240,5%,45%)] text-xs uppercase">Nombre</th>
-            <th className="text-left py-3 px-2 font-bold text-[hsl(240,5%,45%)] text-xs uppercase">Email</th>
-            <th className="text-left py-3 px-2 font-bold text-[hsl(240,5%,45%)] text-xs uppercase">Teléfono</th>
-            <th className="text-left py-3 px-2 font-bold text-[hsl(240,5%,45%)] text-xs uppercase">Fecha</th>
-            <th className="text-left py-3 px-2 font-bold text-[hsl(240,5%,45%)] text-xs uppercase">Mensajes</th>
+          <tr className="border-b border-border">
+            <th className="text-left py-3 px-2 font-bold text-muted-foreground text-xs uppercase">Nombre</th>
+            <th className="text-left py-3 px-2 font-bold text-muted-foreground text-xs uppercase">Email</th>
+            <th className="text-left py-3 px-2 font-bold text-muted-foreground text-xs uppercase">Teléfono</th>
+            <th className="text-left py-3 px-2 font-bold text-muted-foreground text-xs uppercase">Fecha</th>
+            <th className="text-left py-3 px-2 font-bold text-muted-foreground text-xs uppercase">Mensajes</th>
           </tr>
         </thead>
         <tbody>
           {leads.map(lead => (
-            <tr key={lead.id} className="border-b border-[hsl(240,6%,90%)] hover:bg-[hsl(240,5%,97%)]">
+            <tr key={lead.id} className="border-b border-border hover:bg-muted/50">
               <td className="py-3 px-2 font-semibold">{lead.visitor_name}</td>
-              <td className="py-3 px-2 text-[hsl(240,5%,45%)]">{lead.visitor_email ?? '-'}</td>
-              <td className="py-3 px-2 text-[hsl(240,5%,45%)]">{lead.visitor_phone ?? '-'}</td>
-              <td className="py-3 px-2 text-[hsl(240,5%,45%)]">{new Date(lead.updated_at).toLocaleDateString('es-AR')}</td>
+              <td className="py-3 px-2 text-muted-foreground">{lead.visitor_email ?? '-'}</td>
+              <td className="py-3 px-2 text-muted-foreground">{lead.visitor_phone ?? '-'}</td>
+              <td className="py-3 px-2 text-muted-foreground">{new Date(lead.updated_at).toLocaleDateString('es-AR')}</td>
               <td className="py-3 px-2">
                 <Badge variant="secondary">{lead.messages.length}</Badge>
               </td>

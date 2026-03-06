@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, Palette, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, Palette, LogOut, Menu, X, Moon, Sun } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,12 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark)
+    localStorage.setItem('theme', dark ? 'dark' : 'light')
+  }, [dark])
 
   const handleSignOut = async () => {
     await signOut()
@@ -26,7 +32,7 @@ export default function AdminLayout() {
     <div
       className={cn(
         'flex flex-col h-full transition-all duration-300',
-        'bg-[hsl(262,83%,58%)] text-white',
+        'bg-primary text-primary-foreground',
         !mobile && (collapsed ? 'w-16' : 'w-60')
       )}
     >
@@ -56,7 +62,7 @@ export default function AdminLayout() {
             onClick={() => mobile && setMobileOpen(false)}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-[0.75rem] font-semibold text-sm transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors',
                 isActive
                   ? 'bg-white/20 text-white'
                   : 'text-white/80 hover:bg-white/10 hover:text-white'
@@ -73,9 +79,7 @@ export default function AdminLayout() {
       <div className="p-3 border-t border-white/20">
         <button
           onClick={handleSignOut}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-[0.75rem] font-semibold text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors w-full',
-          )}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors w-full"
         >
           <LogOut size={20} className="shrink-0" />
           {(!collapsed || mobile) && <span>Cerrar sesión</span>}
@@ -85,7 +89,7 @@ export default function AdminLayout() {
   )
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[hsl(0,0%,99%)]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <div className="hidden md:flex flex-col h-full shadow-lg">
         <Sidebar />
@@ -103,7 +107,7 @@ export default function AdminLayout() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-14 border-b border-[hsl(240,6%,90%)] bg-white flex items-center px-4 gap-3 shadow-sm">
+        <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 shadow-sm">
           <Button
             variant="ghost"
             size="icon"
@@ -112,7 +116,17 @@ export default function AdminLayout() {
           >
             <Menu size={20} />
           </Button>
-          <span className="font-bold text-[hsl(240,10%,12%)]">Panel de Administración</span>
+          <span className="font-bold text-foreground">Panel de Administración</span>
+          <div className="ml-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDark(d => !d)}
+              title={dark ? 'Modo claro' : 'Modo oscuro'}
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <Outlet />

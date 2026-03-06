@@ -37,8 +37,8 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-[hsl(240,10%,12%)]">Templates</h1>
-        <p className="text-[hsl(240,5%,45%)] mt-1">Administrá los diseños de sitios web para tus clientes</p>
+        <h1 className="text-2xl font-black text-foreground">Templates</h1>
+        <p className="text-muted-foreground mt-1">Administrá los diseños de sitios web para tus clientes</p>
       </div>
 
       {editTemplate ? (
@@ -46,7 +46,7 @@ export default function TemplatesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold">{RUBRO_ICONS[editTemplate.rubro]} {editTemplate.name}</h2>
-              <p className="text-sm text-[hsl(240,5%,45%)]">Editando secciones</p>
+              <p className="text-sm text-muted-foreground">Editando secciones</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setEditTemplate(null)}>Cancelar</Button>
@@ -59,7 +59,7 @@ export default function TemplatesPage() {
               <Card key={section.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <GripVertical size={20} className="text-[hsl(240,5%,45%)] mt-1 cursor-grab shrink-0" />
+                    <GripVertical size={20} className="text-muted-foreground mt-1 cursor-grab shrink-0" />
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{SECTION_TYPE_LABELS[section.type] ?? section.type}</Badge>
@@ -67,11 +67,11 @@ export default function TemplatesPage() {
                           checked={section.visible}
                           onCheckedChange={v => handleSectionChange(idx, 'visible', v)}
                         />
-                        <span className="text-xs text-[hsl(240,5%,45%)]">{section.visible ? 'Visible' : 'Oculta'}</span>
+                        <span className="text-xs text-muted-foreground">{section.visible ? 'Visible' : 'Oculta'}</span>
                       </div>
                       <div className="grid md:grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-xs font-semibold text-[hsl(240,5%,45%)]">Título</label>
+                          <label className="text-xs font-semibold text-muted-foreground">Título</label>
                           <Input
                             value={section.title ?? ''}
                             onChange={e => handleSectionChange(idx, 'title', e.target.value)}
@@ -79,7 +79,7 @@ export default function TemplatesPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-xs font-semibold text-[hsl(240,5%,45%)]">URL de imagen</label>
+                          <label className="text-xs font-semibold text-muted-foreground">URL de imagen</label>
                           <Input
                             value={section.image_url ?? ''}
                             onChange={e => handleSectionChange(idx, 'image_url', e.target.value)}
@@ -88,7 +88,7 @@ export default function TemplatesPage() {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-[hsl(240,5%,45%)]">Contenido</label>
+                        <label className="text-xs font-semibold text-muted-foreground">Contenido</label>
                         <Textarea
                           value={section.content ?? ''}
                           onChange={e => handleSectionChange(idx, 'content', e.target.value)}
@@ -116,10 +116,7 @@ export default function TemplatesPage() {
             const colors = RUBRO_COLORS[template.rubro]
             return (
               <Card key={template.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                {/* Preview color strip */}
-                <div
-                  className={`h-2 bg-gradient-to-r ${colors.from} ${colors.to}`}
-                />
+                <div className={`h-2 bg-gradient-to-r ${colors.from} ${colors.to}`} />
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{RUBRO_ICONS[template.rubro]}</span>
@@ -163,7 +160,7 @@ export default function TemplatesPage() {
           {previewTemplate && (
             <div className="space-y-4">
               {previewTemplate.sections.map(section => (
-                <div key={section.id} className="border border-[hsl(240,6%,90%)] rounded-xl overflow-hidden">
+                <div key={section.id} className="border border-border rounded-lg overflow-hidden">
                   {section.image_url && (
                     <img src={section.image_url} alt={section.title} className="w-full h-40 object-cover" />
                   )}
@@ -172,8 +169,8 @@ export default function TemplatesPage() {
                       <Badge variant="secondary">{SECTION_TYPE_LABELS[section.type]}</Badge>
                       {!section.visible && <Badge variant="destructive">Oculta</Badge>}
                     </div>
-                    {section.title && <h3 className="font-bold text-[hsl(240,10%,12%)]">{section.title}</h3>}
-                    {section.content && <p className="text-sm text-[hsl(240,5%,45%)] mt-1">{section.content}</p>}
+                    {section.title && <h3 className="font-bold text-foreground">{section.title}</h3>}
+                    {section.content && <p className="text-sm text-muted-foreground mt-1">{section.content}</p>}
                   </div>
                 </div>
               ))}

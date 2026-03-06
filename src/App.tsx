@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/hooks/useAuth'
@@ -14,6 +15,14 @@ import PublicSitePage from '@/pages/site/PublicSitePage'
 const queryClient = new QueryClient()
 
 export default function App() {
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (stored === 'dark' || (!stored && prefersDark)) {
+      document.documentElement.classList.add('dark')
+    }
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

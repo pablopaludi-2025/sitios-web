@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, hsl(262,83%,58%) 0%, hsl(199,89%,48%) 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary to-secondary">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center space-y-2">
           <div className="text-5xl mb-2">✨</div>
@@ -90,8 +90,8 @@ export default function LoginPage() {
           </form>
 
           {adminCount === 0 && (
-            <div className="mt-4 pt-4 border-t border-[hsl(240,6%,90%)]">
-              <p className="text-xs text-[hsl(240,5%,45%)] text-center mb-2">
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground text-center mb-2">
                 Primera vez usando la app
               </p>
               <Button

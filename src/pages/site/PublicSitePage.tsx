@@ -47,7 +47,7 @@ export default function PublicSitePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-2">
           <div className="text-4xl animate-spin">✨</div>
-          <p className="text-gray-500">Cargando...</p>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     )
@@ -58,7 +58,7 @@ export default function PublicSitePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-2">
           <p className="text-4xl">😕</p>
-          <p className="text-gray-500">Este sitio no existe.</p>
+          <p className="text-muted-foreground">Este sitio no existe.</p>
         </div>
       </div>
     )
@@ -117,7 +117,7 @@ function SiteContent({ client, sections, products }: {
   const getCartQty = (productId: string) => cart.find(i => i.product_id === productId)?.quantity ?? 0
 
   return (
-    <div className="min-h-screen bg-white font-['Nunito',sans-serif]">
+    <div className="min-h-screen bg-background font-['Nunito',sans-serif]">
       {/* HERO */}
       {heroSection && (
         <section className="relative min-h-[75vh] flex items-end">
@@ -141,7 +141,7 @@ function SiteContent({ client, sections, products }: {
               {showCatalog && (
                 <button
                   onClick={() => catalogRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-6 py-3 bg-[#2196F3] text-white font-bold rounded-full hover:bg-[#1976D2] transition-colors"
+                  className="px-6 py-3 bg-secondary text-secondary-foreground font-bold rounded-full hover:bg-secondary/90 transition-colors"
                 >
                   Ver Catálogo
                 </button>
@@ -188,8 +188,8 @@ function SiteContent({ client, sections, products }: {
                 <p className={`text-xs font-black uppercase tracking-widest mb-2 bg-gradient-to-r ${colors.from} ${colors.to} bg-clip-text text-transparent`}>
                   {section.type === 'about' ? 'Sobre nosotros' : 'Nuestros servicios'}
                 </p>
-                <h2 className="text-3xl font-black text-gray-900 mb-4">{section.title}</h2>
-                <p className="text-gray-600 leading-relaxed">{section.content}</p>
+                <h2 className="text-3xl font-black text-foreground mb-4">{section.title}</h2>
+                <p className="text-muted-foreground leading-relaxed">{section.content}</p>
               </div>
             </div>
           </div>
@@ -198,30 +198,30 @@ function SiteContent({ client, sections, products }: {
 
       {/* CATALOG */}
       {showCatalog && (
-        <section ref={catalogRef} className="py-16 px-4 bg-gray-50">
+        <section ref={catalogRef} className="py-16 px-4 bg-muted/50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-10">
               <p className={`text-xs font-black uppercase tracking-widest mb-2 bg-gradient-to-r ${colors.from} ${colors.to} bg-clip-text text-transparent`}>
                 Menú / Catálogo
               </p>
-              <h2 className="text-3xl font-black text-gray-900">Nuestros productos</h2>
+              <h2 className="text-3xl font-black text-foreground">Nuestros productos</h2>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {products.map(product => {
                 const qty = getCartQty(product.id)
                 return (
-                  <div key={product.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                  <div key={product.id} className="bg-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover" />
                     ) : (
-                      <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-4xl">
+                      <div className="w-full h-40 bg-muted flex items-center justify-center text-4xl">
                         {RUBRO_ICONS[client.rubro]}
                       </div>
                     )}
                     <div className="p-3">
-                      <p className="font-bold text-gray-900">{product.name}</p>
+                      <p className="font-bold text-foreground">{product.name}</p>
                       {product.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{product.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{product.description}</p>
                       )}
                       <div className="flex items-center justify-between mt-2">
                         <span className={`font-black text-lg bg-gradient-to-r ${colors.from} ${colors.to} bg-clip-text text-transparent`}>
@@ -231,7 +231,7 @@ function SiteContent({ client, sections, products }: {
                           qty === 0 ? (
                             <button
                               onClick={() => addToCart(product)}
-                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white rounded-full bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 transition-colors"
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-primary-foreground rounded-full bg-primary hover:bg-primary/90 transition-colors"
                             >
                               <Plus size={12} /> Agregar
                             </button>
@@ -239,14 +239,14 @@ function SiteContent({ client, sections, products }: {
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => removeFromCart(product.id)}
-                                className="w-7 h-7 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center hover:bg-violet-200 transition-colors"
+                                className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center hover:bg-primary/25 transition-colors"
                               >
                                 <Minus size={12} />
                               </button>
                               <span className="w-6 text-center font-bold text-sm">{qty}</span>
                               <button
                                 onClick={() => addToCart(product)}
-                                className="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700 transition-colors"
+                                className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
                               >
                                 <Plus size={12} />
                               </button>
@@ -267,17 +267,17 @@ function SiteContent({ client, sections, products }: {
       {contactSection && (
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-black text-gray-900 mb-4">{contactSection.title}</h2>
-            <p className="text-gray-600 mb-8">{contactSection.content}</p>
+            <h2 className="text-3xl font-black text-foreground mb-4">{contactSection.title}</h2>
+            <p className="text-muted-foreground mb-8">{contactSection.content}</p>
             <div className="flex flex-wrap justify-center gap-4">
               {client.email && (
-                <a href={`mailto:${client.email}`} className="flex items-center gap-2 px-5 py-3 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors text-sm font-semibold">
-                  <Mail size={16} className="text-violet-600" /> {client.email}
+                <a href={`mailto:${client.email}`} className="flex items-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted/50 transition-colors text-sm font-semibold">
+                  <Mail size={16} className="text-primary" /> {client.email}
                 </a>
               )}
               {client.phone && (
-                <a href={`tel:${client.phone}`} className="flex items-center gap-2 px-5 py-3 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors text-sm font-semibold">
-                  <Phone size={16} className="text-violet-600" /> {client.phone}
+                <a href={`tel:${client.phone}`} className="flex items-center gap-2 px-5 py-3 border border-border rounded-full hover:bg-muted/50 transition-colors text-sm font-semibold">
+                  <Phone size={16} className="text-primary" /> {client.phone}
                 </a>
               )}
             </div>
@@ -302,10 +302,10 @@ function SiteContent({ client, sections, products }: {
         {client.ecommerce_enabled && cartCount > 0 && (
           <button
             onClick={() => setShowCart(true)}
-            className="relative w-14 h-14 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-lg hover:bg-violet-700 transition-colors"
+            className="relative w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
           >
             <ShoppingCart size={22} />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white text-xs font-bold rounded-full flex items-center justify-center">
               {cartCount}
             </span>
           </button>
@@ -315,7 +315,7 @@ function SiteContent({ client, sections, products }: {
         {client.chatbot_enabled ? (
           <button
             onClick={() => setShowChat(!showChat)}
-            className="w-14 h-14 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-lg hover:bg-violet-700 transition-colors"
+            className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors"
           >
             {showChat ? <X size={22} /> : <MessageCircle size={22} />}
           </button>
@@ -346,7 +346,7 @@ function SiteContent({ client, sections, products }: {
             <DialogTitle>🛒 Tu pedido</DialogTitle>
           </DialogHeader>
           {cart.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">Tu carrito está vacío</p>
+            <p className="text-center text-muted-foreground py-8">Tu carrito está vacío</p>
           ) : (
             <div className="space-y-3">
               {cart.map(item => (
@@ -356,26 +356,26 @@ function SiteContent({ client, sections, products }: {
                   )}
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{item.name}</p>
-                    <p className="text-xs text-gray-500">${item.price.toLocaleString('es-AR')} c/u</p>
+                    <p className="text-xs text-muted-foreground">${item.price.toLocaleString('es-AR')} c/u</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => removeFromCart(item.product_id)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                    <button onClick={() => removeFromCart(item.product_id)} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70">
                       <Minus size={10} />
                     </button>
                     <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
-                    <button onClick={() => addToCart({ id: item.product_id, client_id: '', name: item.name, price: item.price, available: true, image_url: item.image_url })} className="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700">
+                    <button onClick={() => addToCart({ id: item.product_id, client_id: '', name: item.name, price: item.price, available: true, image_url: item.image_url })} className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90">
                       <Plus size={10} />
                     </button>
                   </div>
                   <p className="text-sm font-bold w-20 text-right">${(item.price * item.quantity).toLocaleString('es-AR')}</p>
-                  <button onClick={() => deleteFromCart(item.product_id)} className="text-red-400 hover:text-red-600">
+                  <button onClick={() => deleteFromCart(item.product_id)} className="text-destructive/60 hover:text-destructive">
                     <Trash2 size={14} />
                   </button>
                 </div>
               ))}
-              <div className="border-t border-gray-200 pt-3 flex justify-between font-black">
+              <div className="border-t border-border pt-3 flex justify-between font-black">
                 <span>Total</span>
-                <span className="text-violet-600">${cartTotal.toLocaleString('es-AR')}</span>
+                <span className="text-primary">${cartTotal.toLocaleString('es-AR')}</span>
               </div>
               <Button
                 className="w-full"
@@ -445,16 +445,16 @@ function CheckoutDialog({ open, onClose, cart, total, clientId, onSuccess }: {
           <DialogTitle>Confirmar pedido</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="bg-gray-50 rounded-xl p-3 space-y-1">
+          <div className="bg-muted/50 rounded-xl p-3 space-y-1">
             {cart.map(item => (
               <div key={item.product_id} className="flex justify-between text-sm">
                 <span>{item.quantity}× {item.name}</span>
                 <span className="font-semibold">${(item.price * item.quantity).toLocaleString('es-AR')}</span>
               </div>
             ))}
-            <div className="border-t border-gray-200 pt-1 flex justify-between font-black">
+            <div className="border-t border-border pt-1 flex justify-between font-black">
               <span>Total</span>
-              <span className="text-violet-600">${total.toLocaleString('es-AR')}</span>
+              <span className="text-primary">${total.toLocaleString('es-AR')}</span>
             </div>
           </div>
           <Input placeholder="Tu nombre *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
@@ -518,9 +518,9 @@ function ChatWidget({ client, onClose }: { client: Client; onClose: () => void }
   }
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 shadow-2xl rounded-2xl overflow-hidden bg-white border border-gray-200">
+    <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 shadow-2xl rounded-2xl overflow-hidden bg-card border border-border">
       {/* Header */}
-      <div className="bg-violet-600 px-4 py-3 flex items-center justify-between">
+      <div className="bg-primary px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm">🤖</div>
           <div>
@@ -538,14 +538,14 @@ function ChatWidget({ client, onClose }: { client: Client; onClose: () => void }
         <div className="space-y-2">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+              <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>
                 {msg.content}
               </div>
             </div>
           ))}
           {sending && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-2xl px-3 py-2 text-sm text-gray-500">Escribiendo...</div>
+              <div className="bg-muted rounded-2xl px-3 py-2 text-sm text-muted-foreground">Escribiendo...</div>
             </div>
           )}
           <div ref={bottomRef} />
@@ -559,7 +559,7 @@ function ChatWidget({ client, onClose }: { client: Client; onClose: () => void }
             href={`https://wa.me/${client.whatsapp.replace(/\D/g, '')}?text=Hola! Quiero hablar con alguien del equipo.`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-center text-green-600 hover:underline block"
+            className="text-xs text-center text-success hover:underline block"
           >
             💬 Prefiero hablar por WhatsApp
           </a>
@@ -567,19 +567,19 @@ function ChatWidget({ client, onClose }: { client: Client; onClose: () => void }
       )}
 
       {/* Input */}
-      <div className="p-3 border-t border-gray-200 flex gap-2">
+      <div className="p-3 border-t border-border flex gap-2">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Escribí tu consulta..."
-          className="flex-1 text-sm px-3 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="flex-1 text-sm px-3 py-2 rounded-full border border-border focus:outline-none focus:ring-2 focus:ring-ring"
           disabled={sending}
         />
         <button
           onClick={sendMessage}
           disabled={!input.trim() || sending}
-          className="w-9 h-9 rounded-full bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700 disabled:opacity-50 transition-colors"
+          className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           <Send size={14} />
         </button>

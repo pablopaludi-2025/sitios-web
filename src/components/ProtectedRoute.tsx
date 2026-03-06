@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="text-4xl animate-spin">✨</div>
-          <p className="text-[hsl(240,5%,45%)]">Cargando...</p>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     )
