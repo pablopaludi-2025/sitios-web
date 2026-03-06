@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Deploy secrets — NUNCA commitear
+deploy.env
+deploy-info.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
