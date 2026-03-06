@@ -57,8 +57,8 @@ source "$ENV_FILE"
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 GITHUB_REPO="https://x-access-token:${GITHUB_TOKEN}@github.com/pablopaludi-2025/sitios-web.git"
-APP_NAME="sitios-web"
-DEPLOY_DIR="${DEPLOY_DIR:-/opt/sitios-web}"
+APP_NAME="vende-mas"
+DEPLOY_DIR="${DEPLOY_DIR:-/opt/vende-mas}"
 SUPABASE_DIR="${DEPLOY_DIR}/supabase-stack"
 BRANCH="${BRANCH:-main}"
 
