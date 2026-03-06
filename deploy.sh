@@ -291,7 +291,7 @@ services:
   # ── PostgreSQL ──────────────────────────────────────────────────────────────
   db:
     container_name: ${APP_NAME}-db
-    image: supabase/postgres:15.6.1.143
+    image: supabase/postgres:15.8.1.085
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -317,7 +317,7 @@ services:
   # ── GoTrue (Auth) ───────────────────────────────────────────────────────────
   auth:
     container_name: ${APP_NAME}-auth
-    image: supabase/gotrue:v2.164.0
+    image: supabase/gotrue:v2.186.0
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -353,7 +353,7 @@ services:
   # ── PostgREST ───────────────────────────────────────────────────────────────
   rest:
     container_name: ${APP_NAME}-rest
-    image: postgrest/postgrest:v12.2.8
+    image: postgrest/postgrest:v14.5
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -377,7 +377,7 @@ services:
   # ── Realtime ────────────────────────────────────────────────────────────────
   realtime:
     container_name: ${APP_NAME}-realtime
-    image: supabase/realtime:v2.30.35
+    image: supabase/realtime:v2.76.5
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -404,7 +404,7 @@ services:
   # ── Storage ─────────────────────────────────────────────────────────────────
   storage:
     container_name: ${APP_NAME}-storage
-    image: supabase/storage-api:v1.11.13
+    image: supabase/storage-api:v1.37.8
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -433,7 +433,7 @@ services:
   # ── Imgproxy ────────────────────────────────────────────────────────────────
   imgproxy:
     container_name: ${APP_NAME}-imgproxy
-    image: darthsim/imgproxy:v3.8.0
+    image: darthsim/imgproxy:v3.30.1
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -448,7 +448,7 @@ services:
   # ── Postgres Meta ───────────────────────────────────────────────────────────
   meta:
     container_name: ${APP_NAME}-meta
-    image: supabase/postgres-meta:v0.84.2
+    image: supabase/postgres-meta:v0.95.2
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -466,7 +466,7 @@ services:
   # ── Edge Functions (Deno) ───────────────────────────────────────────────────
   functions:
     container_name: ${APP_NAME}-functions
-    image: supabase/edge-runtime:v1.67.4
+    image: supabase/edge-runtime:v1.70.3
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
@@ -517,7 +517,7 @@ services:
   # ── Supabase Studio ─────────────────────────────────────────────────────────
   studio:
     container_name: ${APP_NAME}-studio
-    image: supabase/studio:latest
+    image: supabase/studio:2026.02.16-sha-26c615c
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
