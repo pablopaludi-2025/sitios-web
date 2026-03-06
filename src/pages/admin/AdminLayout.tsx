@@ -14,7 +14,10 @@ const navItems = [
 export default function AdminLayout() {
   const { signOut } = useAuth()
   const navigate = useNavigate()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('sidebar-collapsed') === 'true'
+    return false
+  })
   const [mobileOpen, setMobileOpen] = useState(false)
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
 
@@ -44,7 +47,11 @@ export default function AdminLayout() {
         )}
         {!mobile && (
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => {
+              const next = !collapsed
+              setCollapsed(next)
+              localStorage.setItem('sidebar-collapsed', String(next))
+            }}
             className="ml-auto p-1 rounded hover:bg-white/20 transition-colors"
           >
             {collapsed ? <Menu size={18} /> : <X size={18} />}
@@ -54,6 +61,9 @@ export default function AdminLayout() {
 
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-1">
+        {!collapsed && (
+          <p className="text-xs font-bold text-white/50 uppercase tracking-wider px-3 pb-1">Menú</p>
+        )}
         {navItems.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}

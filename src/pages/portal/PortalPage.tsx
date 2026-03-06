@@ -285,12 +285,18 @@ function ContentTab({ clientId, clientName }: { clientId: string; clientName: st
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{posts.length} posts en tu plan</p>
-        <Button variant="outline" size="sm" onClick={downloadAllZip} disabled={downloadingZip}>
-          <Download size={14} />
-          {downloadingZip ? 'Generando ZIP...' : 'Descargar todo (ZIP)'}
-        </Button>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-black text-foreground">Plan de Contenido</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Publicaciones programadas para Instagram</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">{posts.length} posts</span>
+          <Button variant="outline" size="sm" onClick={downloadAllZip} disabled={downloadingZip}>
+            <Download size={14} />
+            {downloadingZip ? 'Generando ZIP...' : 'Descargar todo'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -449,8 +455,11 @@ function CatalogTab({ clientId }: { clientId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{products.length} productos</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-black text-foreground">Catálogo de Productos</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Editá tus productos, precios y disponibilidad</p>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={addProduct}>
             <Plus size={14} /> Agregar
@@ -531,20 +540,6 @@ function CatalogTab({ clientId }: { clientId: string }) {
 }
 
 // ---- ORDERS TAB ----
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendiente',
-  confirmed: 'Confirmado',
-  completed: 'Completado',
-  cancelled: 'Cancelado',
-}
-
-const ORDER_STATUS_COLORS: Record<string, string> = {
-  pending: 'warning',
-  confirmed: 'default',
-  completed: 'success',
-  cancelled: 'destructive',
-}
-
 function OrdersTab({ clientId }: { clientId: string }) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -574,44 +569,62 @@ function OrdersTab({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      {orders.map(order => (
-        <Card key={order.id}>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">{order.customer_name}</p>
-                  <Badge variant={ORDER_STATUS_COLORS[order.status] as 'warning' | 'default' | 'success' | 'destructive'}>
-                    {ORDER_STATUS_LABELS[order.status]}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">{order.customer_email} · {order.customer_phone}</p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {order.items.map((item, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs">{item.quantity}× {item.name}</Badge>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('es-AR')}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-black text-primary">${order.total.toLocaleString('es-AR')}</span>
-                <Select value={order.status} onValueChange={v => updateStatus(order.id, v)}>
-                  <SelectTrigger className="w-36 text-xs h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="confirmed">Confirmado</SelectItem>
-                    <SelectItem value="completed">Completado</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-black text-foreground">Pedidos</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">Pedidos recibidos desde tu sitio web</p>
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fecha</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Cliente</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Teléfono</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Items</th>
+                  <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Total</th>
+                  <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(order => (
+                  <tr key={order.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 text-muted-foreground">{new Date(order.created_at).toLocaleDateString('es-AR')}</td>
+                    <td className="py-3 px-4">
+                      <p className="font-semibold">{order.customer_name}</p>
+                      {order.customer_email && <p className="text-xs text-muted-foreground">{order.customer_email}</p>}
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">{order.customer_phone}</td>
+                    <td className="py-3 px-4">
+                      <div className="space-y-0.5">
+                        {order.items.map((item, i) => (
+                          <p key={i} className="text-xs">{item.quantity}× {item.name}</p>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right font-bold text-foreground">${order.total.toLocaleString('es-AR')}</td>
+                    <td className="py-3 px-4">
+                      <Select value={order.status} onValueChange={v => updateStatus(order.id, v)}>
+                        <SelectTrigger className="w-32 text-xs h-7">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="confirmed">Confirmado</SelectItem>
+                          <SelectItem value="completed">Completado</SelectItem>
+                          <SelectItem value="cancelled">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
