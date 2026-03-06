@@ -95,7 +95,8 @@ elif docker ps --format '{{.Image}}' 2>/dev/null | grep -qi 'traefik'; then
 elif docker ps --format '{{.Image}}' 2>/dev/null | grep -qi 'caddy'; then
   RP_CONTAINER=$(docker ps --format '{{.Names}}\t{{.Image}}' | grep -i caddy | awk '{print $1}' | head -1)
   REVERSE_PROXY="caddy"
-elif systemctl is-active --quiet nginx 2>/dev/null; then
+elif systemctl is-active --quiet nginx 2>/dev/null || \
+     ( command -v nginx &>/dev/null && nginx -v &>/dev/null 2>&1 ); then
   REVERSE_PROXY="nginx-system"
 elif systemctl is-active --quiet apache2 2>/dev/null; then
   REVERSE_PROXY="apache"
@@ -968,7 +969,8 @@ NGINXEOF3
   if [[ "$SSL_TOOL" == "certbot" ]]; then
     info "Obteniendo certificados SSL con certbot..."
     certbot --nginx -d "$APP_DOMAIN" -d "$SUPABASE_DOMAIN" -d "$STUDIO_DOMAIN" \
-      --non-interactive --agree-tos --email "admin@${APP_DOMAIN}" || \
+      --non-interactive --agree-tos --email "admin@${APP_DOMAIN}" \
+      --keep-until-expiring --expand || \
       warn "certbot falló. Configurar SSL manualmente."
     log "SSL configurado"
   elif [[ "$SSL_TOOL" == "acme.sh" ]]; then
@@ -1080,19 +1082,28 @@ case "$REVERSE_PROXY" in
     echo ""
     ;;
   none)
-    info "No hay reverse proxy. Instalando nginx + certbot automáticamente..."
-    if command -v apt-get &>/dev/null; then
-      apt-get update -qq
-      apt-get install -y -qq nginx certbot python3-certbot-nginx
-    elif command -v yum &>/dev/null; then
-      yum install -y -q nginx certbot python3-certbot-nginx
-    else
-      warn "No se pudo instalar nginx automáticamente. Instalalo manualmente e intentá de nuevo."
-      warn "  apt-get install -y nginx certbot python3-certbot-nginx"
-      break
+    info "No hay reverse proxy. Instalando nginx + certbot si es necesario..."
+    if ! command -v nginx &>/dev/null; then
+      if command -v apt-get &>/dev/null; then
+        apt-get update -qq
+        apt-get install -y -qq nginx
+      elif command -v yum &>/dev/null; then
+        yum install -y -q nginx
+      else
+        warn "No se pudo instalar nginx automáticamente. Instalalo manualmente e intentá de nuevo."
+        warn "  apt-get install -y nginx certbot python3-certbot-nginx"
+        break
+      fi
     fi
-    systemctl enable nginx
-    systemctl start nginx
+    if ! command -v certbot &>/dev/null; then
+      if command -v apt-get &>/dev/null; then
+        apt-get install -y -qq certbot python3-certbot-nginx
+      elif command -v yum &>/dev/null; then
+        yum install -y -q certbot python3-certbot-nginx
+      fi
+    fi
+    systemctl enable nginx 2>/dev/null || true
+    systemctl start nginx  2>/dev/null || true
     REVERSE_PROXY="nginx-system"
     SSL_TOOL="certbot"
     configure_nginx_system
