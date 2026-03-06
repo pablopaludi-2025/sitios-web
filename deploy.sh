@@ -517,7 +517,7 @@ services:
   # ── Supabase Studio ─────────────────────────────────────────────────────────
   studio:
     container_name: ${APP_NAME}-studio
-    image: supabase/studio:20250317-6eee85b
+    image: supabase/studio:latest
     restart: unless-stopped
     networks:
       - ${APP_NAME}-supabase
