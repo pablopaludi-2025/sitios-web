@@ -123,6 +123,27 @@ elif [[ -f /root/.acme.sh/acme.sh ]]; then
 fi
 log "SSL management: $SSL_TOOL"
 
+find_caddyfile() {
+  # 1. Intentar sacar la ruta del servicio systemd
+  local exec_line
+  exec_line=$(systemctl cat caddy 2>/dev/null | grep -oP '(?<=ExecStart=).*' | head -1)
+  if echo "$exec_line" | grep -q '\-\-config'; then
+    local path
+    path=$(echo "$exec_line" | grep -oP '(?<=--config )\S+')
+    [[ -f "$path" ]] && { echo "$path"; return; }
+  fi
+  # 2. Ubicaciones conocidas
+  local known
+  for known in \
+    /opt/airsync/deployment/Caddyfile \
+    /etc/caddy/Caddyfile \
+    /usr/local/etc/caddy/Caddyfile \
+    /home/*/Caddyfile; do
+    [[ -f "$known" ]] && { echo "$known"; return; }
+  done
+  echo ""
+}
+
 # Verificar que el dominio no esté ya configurado en el reverse proxy
 check_domain_conflict() {
   local domain=$1
@@ -903,27 +924,6 @@ log "App iniciada en puerto $APP_PORT"
 # 13. CONFIGURAR REVERSE PROXY
 # =============================================================================
 step "Configurando reverse proxy"
-
-find_caddyfile() {
-  # 1. Intentar sacar la ruta del servicio systemd
-  local exec_line
-  exec_line=$(systemctl cat caddy 2>/dev/null | grep -oP '(?<=ExecStart=).*' | head -1)
-  if echo "$exec_line" | grep -q '\-\-config'; then
-    local path
-    path=$(echo "$exec_line" | grep -oP '(?<=--config )\S+')
-    [[ -f "$path" ]] && { echo "$path"; return; }
-  fi
-  # 2. Ubicaciones conocidas
-  local known
-  for known in \
-    /opt/airsync/deployment/Caddyfile \
-    /etc/caddy/Caddyfile \
-    /usr/local/etc/caddy/Caddyfile \
-    /home/*/Caddyfile; do
-    [[ -f "$known" ]] && { echo "$known"; return; }
-  done
-  echo ""
-}
 
 print_caddy_blocks() {
   local caddy_conf_dir
