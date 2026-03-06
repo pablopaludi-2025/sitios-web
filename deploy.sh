@@ -888,9 +888,10 @@ else
 fi
 
 # Migración adicional: crear los roles y usuarios necesarios para Supabase
-docker exec "${APP_NAME}-db" psql -U postgres -d postgres <<'SQLEOF' || true
+# NOTA: se usa heredoc sin comillas para que ${DB_PASSWORD} se expanda
+docker exec "${APP_NAME}-db" psql -U postgres -d postgres <<SQLEOF || true
 -- Crear roles de Supabase si no existen
-DO $$
+DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'anon') THEN
     CREATE ROLE anon NOLOGIN NOINHERIT;
@@ -901,11 +902,48 @@ BEGIN
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'service_role') THEN
     CREATE ROLE service_role NOLOGIN NOINHERIT BYPASSRLS;
   END IF;
+  -- authenticator: usado por PostgREST
   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authenticator') THEN
-    CREATE ROLE authenticator NOINHERIT LOGIN;
+    CREATE ROLE authenticator NOINHERIT LOGIN PASSWORD '${DB_PASSWORD}';
+  ELSE
+    ALTER ROLE authenticator WITH PASSWORD '${DB_PASSWORD}';
   END IF;
+  -- supabase_auth_admin: usado por GoTrue/Auth
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_auth_admin') THEN
+    CREATE ROLE supabase_auth_admin NOINHERIT LOGIN PASSWORD '${DB_PASSWORD}' CREATEROLE;
+  ELSE
+    ALTER ROLE supabase_auth_admin WITH PASSWORD '${DB_PASSWORD}';
+  END IF;
+  -- supabase_storage_admin: usado por Storage
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_storage_admin') THEN
+    CREATE ROLE supabase_storage_admin NOINHERIT LOGIN PASSWORD '${DB_PASSWORD}';
+  ELSE
+    ALTER ROLE supabase_storage_admin WITH PASSWORD '${DB_PASSWORD}';
+  END IF;
+  -- supabase_admin: usado por meta y realtime
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'supabase_admin') THEN
+    CREATE ROLE supabase_admin LOGIN SUPERUSER PASSWORD '${DB_PASSWORD}';
+  ELSE
+    ALTER ROLE supabase_admin WITH PASSWORD '${DB_PASSWORD}';
+  END IF;
+  -- Grants necesarios
+  GRANT anon TO authenticator;
+  GRANT authenticated TO authenticator;
+  GRANT service_role TO authenticator;
 END
-$$;
+\$\$;
+-- Permisos de schema para auth
+GRANT ALL PRIVILEGES ON SCHEMA auth TO supabase_auth_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT ALL ON TABLES TO supabase_auth_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT ALL ON SEQUENCES TO supabase_auth_admin;
+-- Permisos de schema para storage
+GRANT ALL PRIVILEGES ON SCHEMA storage TO supabase_storage_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA storage TO supabase_storage_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA storage TO supabase_storage_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA storage GRANT ALL ON TABLES TO supabase_storage_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA storage GRANT ALL ON SEQUENCES TO supabase_storage_admin;
 SQLEOF
 log "Roles de Supabase verificados"
 
