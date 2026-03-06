@@ -763,8 +763,6 @@ MAIN_FN_DIR="${DEPLOY_DIR}/supabase/functions/main"
 mkdir -p "$MAIN_FN_DIR"
 
 cat > "${MAIN_FN_DIR}/index.ts" <<'MAINEOF'
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
-
 const functions: Record<string, () => Promise<{ default: (req: Request) => Response | Promise<Response> }>> = {
   "chatbot":               () => import("../chatbot/index.ts"),
   "create-client-user":   () => import("../create-client-user/index.ts"),
@@ -772,7 +770,7 @@ const functions: Record<string, () => Promise<{ default: (req: Request) => Respo
   "seed-data":             () => import("../seed-data/index.ts"),
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const url = new URL(req.url)
   const pathParts = url.pathname.split("/").filter(Boolean)
   const fnName = pathParts[0]
