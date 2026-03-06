@@ -519,7 +519,7 @@ services:
     command:
       - start
       - --main-service
-      - /home/deno/functions/main/index.ts
+      - /home/deno/functions/main
 
   # ── Kong API Gateway ────────────────────────────────────────────────────────
   kong:
