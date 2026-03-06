@@ -109,16 +109,25 @@ studio.app.chenant.com {
 }
 ```
 
-### Agregar Nueva App al Caddyfile
+### Agregar Nueva App — Archivo Separado (conf.d)
 
-**SIEMPRE agregar bloques al final — NUNCA modificar los existentes.**
+Cada app tiene su **propio archivo Caddy** en `conf.d/`. El Caddyfile de AirSync
+se toca **una sola vez** para agregar el `import`.
 
-```caddyfile
-# ================================================
-# Nueva Aplicación
-# ================================================
+**Paso 1 — Solo la primera vez (si no existe el import):**
+```bash
+# Agregar al final del Caddyfile de AirSync
+echo "import /opt/airsync/deployment/conf.d/*.caddy" \
+  | sudo tee -a /opt/airsync/deployment/Caddyfile
+```
+
+**Paso 2 — Para cada nueva app, crear su propio archivo:**
+```bash
+sudo mkdir -p /opt/airsync/deployment/conf.d
+
+sudo tee /opt/airsync/deployment/conf.d/nueva-app.caddy <<'EOF'
 nueva-app.chenant.com {
-    reverse_proxy localhost:3150   # puerto de la nueva app
+    reverse_proxy localhost:3150
     encode gzip
     header {
         Strict-Transport-Security "max-age=31536000;"
@@ -128,19 +137,23 @@ nueva-app.chenant.com {
 }
 
 api.nueva-app.chenant.com {
-    reverse_proxy localhost:8001   # Kong de la nueva app
+    reverse_proxy localhost:8001
 }
 
 studio.nueva-app.chenant.com {
-    reverse_proxy localhost:3002   # Studio de la nueva app
+    reverse_proxy localhost:3002
 }
+EOF
 ```
 
-Después de editar:
+**Paso 3 — Validar y recargar:**
 ```bash
 caddy validate --config /opt/airsync/deployment/Caddyfile
 sudo systemctl reload caddy
 ```
+
+> El deploy.sh hace esto automáticamente. El Caddyfile de AirSync nunca se modifica
+> más allá de agregar la línea `import conf.d/*.caddy` (solo una vez).
 
 ---
 

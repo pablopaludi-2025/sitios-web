@@ -926,23 +926,28 @@ find_caddyfile() {
 }
 
 print_caddy_blocks() {
+  local caddy_conf_dir
+  caddy_conf_dir=$(dirname "$(find_caddyfile 2>/dev/null || echo '/etc/caddy/Caddyfile')")/conf.d
   echo ""
-  echo "  # Agregar al Caddyfile (sin modificar bloques existentes):"
-  echo ""
+  echo "  # Crear archivo separado para esta app:"
+  echo "  sudo mkdir -p ${caddy_conf_dir}"
+  echo "  sudo tee ${caddy_conf_dir}/${APP_NAME}.caddy <<'EOF'"
   echo "  ${APP_DOMAIN} {"
   echo "      reverse_proxy localhost:${APP_PORT}"
   echo "      encode gzip"
   echo "  }"
-  echo ""
   echo "  ${SUPABASE_DOMAIN} {"
   echo "      reverse_proxy localhost:${SUPA_API_PORT}"
   echo "  }"
-  echo ""
   echo "  ${STUDIO_DOMAIN} {"
   echo "      reverse_proxy localhost:${SUPA_STUDIO_PORT}"
   echo "  }"
+  echo "  EOF"
   echo ""
-  echo "  Luego: sudo systemctl reload caddy"
+  echo "  # Y agregar al Caddyfile principal (una sola vez):"
+  echo "  echo 'import ${caddy_conf_dir}/*.caddy' | sudo tee -a <ruta-del-Caddyfile>"
+  echo ""
+  echo "  Luego: caddy validate --config <ruta> && sudo systemctl reload caddy"
 }
 
 configure_caddy_system() {
@@ -957,24 +962,27 @@ configure_caddy_system() {
 
   log "Caddyfile encontrado: $caddyfile"
 
-  if grep -q "$APP_DOMAIN" "$caddyfile" 2>/dev/null; then
-    warn "El dominio $APP_DOMAIN ya está en el Caddyfile. Omitiendo configuración automática."
-    warn "Si querés actualizarlo, editá $caddyfile manualmente."
-    return
+  # Directorio conf.d propio de esta app (NO tocar el Caddyfile de AirSync salvo por el import)
+  local caddy_dir
+  caddy_dir=$(dirname "$caddyfile")
+  local confd_dir="${caddy_dir}/conf.d"
+  mkdir -p "$confd_dir"
+
+  # Si el Caddyfile aún no importa conf.d, agregamos una sola línea al final
+  if ! grep -q "import.*conf\.d" "$caddyfile" 2>/dev/null; then
+    local backup_ts
+    backup_ts=$(date +%Y%m%d%H%M%S)
+    cp "$caddyfile" "${caddyfile}.bak.${backup_ts}"
+    info "Backup del Caddyfile: ${caddyfile}.bak.${backup_ts}"
+    echo "" >> "$caddyfile"
+    echo "import ${confd_dir}/*.caddy" >> "$caddyfile"
+    info "Agregado: import ${confd_dir}/*.caddy al Caddyfile"
   fi
 
-  # Backup antes de tocar nada
-  local backup_ts
-  backup_ts=$(date +%Y%m%d%H%M%S)
-  cp "$caddyfile" "${caddyfile}.bak.${backup_ts}"
-  info "Backup: ${caddyfile}.bak.${backup_ts}"
-
-  # Agregar bloques al final (SIN modificar los existentes)
-  cat >> "$caddyfile" <<CADDYEOF
-
-# ============================================================
+  # Escribir el archivo de esta app en conf.d (independiente de AirSync)
+  local app_caddy="${confd_dir}/${APP_NAME}.caddy"
+  cat > "$app_caddy" <<CADDYEOF
 # ${APP_NAME} — generado por deploy.sh el $(date)
-# ============================================================
 ${APP_DOMAIN} {
     reverse_proxy localhost:${APP_PORT}
     encode gzip
@@ -1001,16 +1009,21 @@ ${STUDIO_DOMAIN} {
     }
 }
 CADDYEOF
+  log "Config de ${APP_NAME} escrita en: $app_caddy"
 
-  # Validar antes de recargar
+  # Validar toda la config antes de recargar
   if caddy validate --config "$caddyfile" 2>/dev/null; then
     systemctl reload caddy
-    log "Caddy (sistema) configurado y recargado — SSL automático via ACME"
+    log "Caddy recargado — SSL automático via ACME"
   else
-    warn "La validación de Caddy falló. Revirtiendo backup..."
-    cp "${caddyfile}.bak.${backup_ts}" "$caddyfile"
-    warn "Caddyfile revertido a ${caddyfile}.bak.${backup_ts}"
-    warn "Revisá el Caddyfile manualmente y agregá los bloques:"
+    warn "La validación de Caddy falló. Eliminando ${app_caddy} y revirtiendo..."
+    rm -f "$app_caddy"
+    # Revertir el import si lo acabamos de agregar
+    if [[ -n "${backup_ts:-}" ]]; then
+      cp "${caddyfile}.bak.${backup_ts}" "$caddyfile"
+      warn "Caddyfile revertido a .bak.${backup_ts}"
+    fi
+    warn "Configurá manualmente el archivo: $app_caddy"
     print_caddy_blocks
   fi
 }
