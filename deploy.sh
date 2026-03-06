@@ -60,7 +60,7 @@ GITHUB_REPO="https://x-access-token:${GITHUB_TOKEN}@github.com/pablopaludi-2025/
 APP_NAME="vende-mas"
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/vende-mas}"
 SUPABASE_DIR="${DEPLOY_DIR}/supabase-stack"
-BRANCH="${BRANCH:-main}"
+BRANCH="${BRANCH:-claude/build-ai-sales-app-73xTm}"
 
 # ─── DOCKER COMPOSE command ───────────────────────────────────────────────────
 if docker compose version &>/dev/null 2>&1; then
