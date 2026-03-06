@@ -1080,10 +1080,22 @@ case "$REVERSE_PROXY" in
     echo ""
     ;;
   none)
-    warn "Sin reverse proxy. La app está accesible en:"
-    echo "  App:      http://TU_IP:${APP_PORT}"
-    echo "  Supabase: http://TU_IP:${SUPA_API_PORT}"
-    echo "  Studio:   http://TU_IP:${SUPA_STUDIO_PORT}"
+    info "No hay reverse proxy. Instalando nginx + certbot automáticamente..."
+    if command -v apt-get &>/dev/null; then
+      apt-get update -qq
+      apt-get install -y -qq nginx certbot python3-certbot-nginx
+    elif command -v yum &>/dev/null; then
+      yum install -y -q nginx certbot python3-certbot-nginx
+    else
+      warn "No se pudo instalar nginx automáticamente. Instalalo manualmente e intentá de nuevo."
+      warn "  apt-get install -y nginx certbot python3-certbot-nginx"
+      break
+    fi
+    systemctl enable nginx
+    systemctl start nginx
+    REVERSE_PROXY="nginx-system"
+    SSL_TOOL="certbot"
+    configure_nginx_system
     ;;
 esac
 
