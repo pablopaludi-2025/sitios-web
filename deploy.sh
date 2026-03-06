@@ -94,7 +94,9 @@ elif docker ps --format '{{.Image}}' 2>/dev/null | grep -qi 'traefik'; then
   REVERSE_PROXY="traefik"
 elif docker ps --format '{{.Image}}' 2>/dev/null | grep -qi 'caddy'; then
   RP_CONTAINER=$(docker ps --format '{{.Names}}\t{{.Image}}' | grep -i caddy | awk '{print $1}' | head -1)
-  REVERSE_PROXY="caddy"
+  REVERSE_PROXY="caddy-docker"
+elif systemctl is-active --quiet caddy 2>/dev/null || command -v caddy &>/dev/null; then
+  REVERSE_PROXY="caddy-system"
 elif systemctl is-active --quiet nginx 2>/dev/null || \
      ( command -v nginx &>/dev/null && nginx -v &>/dev/null 2>&1 ); then
   REVERSE_PROXY="nginx-system"
@@ -110,12 +112,14 @@ fi
 
 # SSL
 SSL_TOOL="none"
-if command -v certbot &>/dev/null; then
+if [[ "$REVERSE_PROXY" == "caddy-system" || "$REVERSE_PROXY" == "caddy-docker" ]]; then
+  SSL_TOOL="caddy-auto"  # Caddy gestiona ACME automáticamente
+elif [[ "$REVERSE_PROXY" == "traefik" ]]; then
+  SSL_TOOL="traefik-auto"
+elif command -v certbot &>/dev/null; then
   SSL_TOOL="certbot"
 elif [[ -f /root/.acme.sh/acme.sh ]]; then
   SSL_TOOL="acme.sh"
-elif [[ "$REVERSE_PROXY" == "traefik" ]]; then
-  SSL_TOOL="traefik-auto"
 fi
 log "SSL management: $SSL_TOOL"
 
@@ -123,6 +127,13 @@ log "SSL management: $SSL_TOOL"
 check_domain_conflict() {
   local domain=$1
   case "$REVERSE_PROXY" in
+    caddy-system)
+      local caddy_cfg
+      caddy_cfg=$(find_caddyfile)
+      if [[ -n "$caddy_cfg" ]] && grep -q "$domain" "$caddy_cfg" 2>/dev/null; then
+        warn "El dominio $domain ya aparece en el Caddyfile ($caddy_cfg). Revisá antes de continuar."
+      fi
+      ;;
     nginx-system)
       if grep -r "$domain" /etc/nginx/sites-enabled/ /etc/nginx/conf.d/ 2>/dev/null | grep -q .; then
         warn "El dominio $domain ya aparece en la configuración de nginx. Revisá antes de continuar."
@@ -893,6 +904,117 @@ log "App iniciada en puerto $APP_PORT"
 # =============================================================================
 step "Configurando reverse proxy"
 
+find_caddyfile() {
+  # 1. Intentar sacar la ruta del servicio systemd
+  local exec_line
+  exec_line=$(systemctl cat caddy 2>/dev/null | grep -oP '(?<=ExecStart=).*' | head -1)
+  if echo "$exec_line" | grep -q '\-\-config'; then
+    local path
+    path=$(echo "$exec_line" | grep -oP '(?<=--config )\S+')
+    [[ -f "$path" ]] && { echo "$path"; return; }
+  fi
+  # 2. Ubicaciones conocidas
+  local known
+  for known in \
+    /opt/airsync/deployment/Caddyfile \
+    /etc/caddy/Caddyfile \
+    /usr/local/etc/caddy/Caddyfile \
+    /home/*/Caddyfile; do
+    [[ -f "$known" ]] && { echo "$known"; return; }
+  done
+  echo ""
+}
+
+print_caddy_blocks() {
+  echo ""
+  echo "  # Agregar al Caddyfile (sin modificar bloques existentes):"
+  echo ""
+  echo "  ${APP_DOMAIN} {"
+  echo "      reverse_proxy localhost:${APP_PORT}"
+  echo "      encode gzip"
+  echo "  }"
+  echo ""
+  echo "  ${SUPABASE_DOMAIN} {"
+  echo "      reverse_proxy localhost:${SUPA_API_PORT}"
+  echo "  }"
+  echo ""
+  echo "  ${STUDIO_DOMAIN} {"
+  echo "      reverse_proxy localhost:${SUPA_STUDIO_PORT}"
+  echo "  }"
+  echo ""
+  echo "  Luego: sudo systemctl reload caddy"
+}
+
+configure_caddy_system() {
+  local caddyfile
+  caddyfile=$(find_caddyfile)
+
+  if [[ -z "$caddyfile" || ! -f "$caddyfile" ]]; then
+    warn "No se encontró el Caddyfile. Agregá los bloques manualmente:"
+    print_caddy_blocks
+    return
+  fi
+
+  log "Caddyfile encontrado: $caddyfile"
+
+  if grep -q "$APP_DOMAIN" "$caddyfile" 2>/dev/null; then
+    warn "El dominio $APP_DOMAIN ya está en el Caddyfile. Omitiendo configuración automática."
+    warn "Si querés actualizarlo, editá $caddyfile manualmente."
+    return
+  fi
+
+  # Backup antes de tocar nada
+  local backup_ts
+  backup_ts=$(date +%Y%m%d%H%M%S)
+  cp "$caddyfile" "${caddyfile}.bak.${backup_ts}"
+  info "Backup: ${caddyfile}.bak.${backup_ts}"
+
+  # Agregar bloques al final (SIN modificar los existentes)
+  cat >> "$caddyfile" <<CADDYEOF
+
+# ============================================================
+# ${APP_NAME} — generado por deploy.sh el $(date)
+# ============================================================
+${APP_DOMAIN} {
+    reverse_proxy localhost:${APP_PORT}
+    encode gzip
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+
+${SUPABASE_DOMAIN} {
+    reverse_proxy localhost:${SUPA_API_PORT}
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+    }
+}
+
+${STUDIO_DOMAIN} {
+    reverse_proxy localhost:${SUPA_STUDIO_PORT}
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+    }
+}
+CADDYEOF
+
+  # Validar antes de recargar
+  if caddy validate --config "$caddyfile" 2>/dev/null; then
+    systemctl reload caddy
+    log "Caddy (sistema) configurado y recargado — SSL automático via ACME"
+  else
+    warn "La validación de Caddy falló. Revirtiendo backup..."
+    cp "${caddyfile}.bak.${backup_ts}" "$caddyfile"
+    warn "Caddyfile revertido a ${caddyfile}.bak.${backup_ts}"
+    warn "Revisá el Caddyfile manualmente y agregá los bloques:"
+    print_caddy_blocks
+  fi
+}
+
 configure_nginx_system() {
   local nginx_conf_dir="/etc/nginx/sites-available"
   local nginx_enabled_dir="/etc/nginx/sites-enabled"
@@ -1065,48 +1187,40 @@ case "$REVERSE_PROXY" in
   nginx-system) configure_nginx_system ;;
   nginx-docker) configure_nginx_docker ;;
   traefik)      configure_traefik ;;
-  caddy)
-    warn "Caddy detectado. Agregá esto a tu Caddyfile:"
-    echo ""
-    echo "  ${APP_DOMAIN} {"
-    echo "    reverse_proxy localhost:${APP_PORT}"
-    echo "  }"
-    echo ""
-    echo "  ${SUPABASE_DOMAIN} {"
-    echo "    reverse_proxy localhost:${SUPA_API_PORT}"
-    echo "  }"
-    echo ""
-    echo "  ${STUDIO_DOMAIN} {"
-    echo "    reverse_proxy localhost:${SUPA_STUDIO_PORT}"
-    echo "  }"
-    echo ""
+  caddy-system) configure_caddy_system ;;
+  caddy-docker)
+    warn "Caddy en Docker detectado. Agregá los bloques al Caddyfile del contenedor manualmente:"
+    print_caddy_blocks
     ;;
   none)
-    info "No hay reverse proxy. Instalando nginx + certbot si es necesario..."
-    if ! command -v nginx &>/dev/null; then
+    # Último intento: re-chequear caddy/nginx por si el detection falló al inicio
+    if systemctl is-active --quiet caddy 2>/dev/null || command -v caddy &>/dev/null; then
+      REVERSE_PROXY="caddy-system"
+      SSL_TOOL="caddy-auto"
+      configure_caddy_system
+    elif systemctl is-active --quiet nginx 2>/dev/null || command -v nginx &>/dev/null; then
+      REVERSE_PROXY="nginx-system"
+      SSL_TOOL="certbot"
+      configure_nginx_system
+    else
+      info "No hay reverse proxy. Instalando nginx + certbot..."
       if command -v apt-get &>/dev/null; then
         apt-get update -qq
         apt-get install -y -qq nginx
+        apt-get install -y -qq certbot python3-certbot-nginx
       elif command -v yum &>/dev/null; then
-        yum install -y -q nginx
+        yum install -y -q nginx certbot python3-certbot-nginx
       else
-        warn "No se pudo instalar nginx automáticamente. Instalalo manualmente e intentá de nuevo."
+        warn "No se pudo instalar nginx automáticamente."
         warn "  apt-get install -y nginx certbot python3-certbot-nginx"
         break
       fi
+      systemctl enable nginx 2>/dev/null || true
+      systemctl start nginx  2>/dev/null || true
+      REVERSE_PROXY="nginx-system"
+      SSL_TOOL="certbot"
+      configure_nginx_system
     fi
-    if ! command -v certbot &>/dev/null; then
-      if command -v apt-get &>/dev/null; then
-        apt-get install -y -qq certbot python3-certbot-nginx
-      elif command -v yum &>/dev/null; then
-        yum install -y -q certbot python3-certbot-nginx
-      fi
-    fi
-    systemctl enable nginx 2>/dev/null || true
-    systemctl start nginx  2>/dev/null || true
-    REVERSE_PROXY="nginx-system"
-    SSL_TOOL="certbot"
-    configure_nginx_system
     ;;
 esac
 
