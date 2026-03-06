@@ -49,8 +49,9 @@ source "$ENV_FILE"
 
 # ─── Valores requeridos ───────────────────────────────────────────────────────
 : "${GITHUB_TOKEN:?Falta GITHUB_TOKEN en deploy.env}"
-: "${APP_DOMAIN:?Falta APP_DOMAIN en deploy.env (ej: app.tudominio.com)}"
-: "${SUPABASE_DOMAIN:?Falta SUPABASE_DOMAIN en deploy.env (ej: supabase2.tudominio.com)}"
+: "${APP_DOMAIN:?Falta APP_DOMAIN en deploy.env (ej: dev.vendemas.soynico.ai)}"
+: "${SUPABASE_DOMAIN:?Falta SUPABASE_DOMAIN en deploy.env (ej: api.dev.vendemas.soynico.ai)}"
+: "${STUDIO_DOMAIN:?Falta STUDIO_DOMAIN en deploy.env (ej: studio.dev.vendemas.soynico.ai)}"
 : "${DB_PASSWORD:?Falta DB_PASSWORD en deploy.env}"
 : "${OPENROUTER_API_KEY:?Falta OPENROUTER_API_KEY en deploy.env}"
 
@@ -137,6 +138,7 @@ check_domain_conflict() {
 }
 check_domain_conflict "$APP_DOMAIN"
 check_domain_conflict "$SUPABASE_DOMAIN"
+check_domain_conflict "$STUDIO_DOMAIN"
 
 # =============================================================================
 # 2. ENCONTRAR PUERTOS LIBRES
@@ -911,7 +913,7 @@ server {
 }
 NGINXEOF
 
-  # Config para Supabase
+  # Config para Supabase API
   cat > "${nginx_conf_dir}/${APP_NAME}-supabase" <<NGINXEOF2
 # sitios-web supabase — generado por deploy.sh
 server {
@@ -935,8 +937,29 @@ server {
 }
 NGINXEOF2
 
+  # Config para Supabase Studio
+  cat > "${nginx_conf_dir}/${APP_NAME}-studio" <<NGINXEOF3
+# sitios-web studio — generado por deploy.sh
+server {
+    listen 80;
+    server_name ${STUDIO_DOMAIN};
+
+    location / {
+        proxy_pass http://127.0.0.1:${SUPA_STUDIO_PORT};
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+NGINXEOF3
+
   ln -sf "${nginx_conf_dir}/${APP_NAME}" "${nginx_enabled_dir}/${APP_NAME}" 2>/dev/null || true
   ln -sf "${nginx_conf_dir}/${APP_NAME}-supabase" "${nginx_enabled_dir}/${APP_NAME}-supabase" 2>/dev/null || true
+  ln -sf "${nginx_conf_dir}/${APP_NAME}-studio" "${nginx_enabled_dir}/${APP_NAME}-studio" 2>/dev/null || true
 
   nginx -t && systemctl reload nginx
   log "nginx (sistema) configurado"
@@ -944,13 +967,13 @@ NGINXEOF2
   # SSL con certbot
   if [[ "$SSL_TOOL" == "certbot" ]]; then
     info "Obteniendo certificados SSL con certbot..."
-    certbot --nginx -d "$APP_DOMAIN" -d "$SUPABASE_DOMAIN" \
+    certbot --nginx -d "$APP_DOMAIN" -d "$SUPABASE_DOMAIN" -d "$STUDIO_DOMAIN" \
       --non-interactive --agree-tos --email "admin@${APP_DOMAIN}" || \
       warn "certbot falló. Configurar SSL manualmente."
     log "SSL configurado"
   elif [[ "$SSL_TOOL" == "acme.sh" ]]; then
     info "Usando acme.sh para SSL. Ejecutá manualmente:"
-    echo "  ~/.acme.sh/acme.sh --issue -d ${APP_DOMAIN} -d ${SUPABASE_DOMAIN} --nginx"
+    echo "  ~/.acme.sh/acme.sh --issue -d ${APP_DOMAIN} -d ${SUPABASE_DOMAIN} -d ${STUDIO_DOMAIN} --nginx"
     echo "  ~/.acme.sh/acme.sh --install-cert -d ${APP_DOMAIN} --nginx"
   fi
 }
@@ -987,6 +1010,20 @@ server {
         proxy_set_header Connection "upgrade";
     }
 }
+server {
+    listen 80;
+    server_name ${STUDIO_DOMAIN};
+    location / {
+        proxy_pass http://host.docker.internal:${SUPA_STUDIO_PORT};
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
 NGINXEOF
 
   # Copiar la config al contenedor nginx y recargar
@@ -1006,13 +1043,20 @@ configure_traefik() {
       - "traefik.http.routers.${APP_NAME}.tls.certresolver=le"
       - "traefik.http.services.${APP_NAME}.loadbalancer.server.port=80"
 TRAEFIKEOF
-  info "Y estas para Supabase:"
+  info "Y estas para Supabase API:"
   cat <<TRAEFIKEOF2
       - "traefik.http.routers.${APP_NAME}-supa.rule=Host(\`${SUPABASE_DOMAIN}\`)"
       - "traefik.http.routers.${APP_NAME}-supa.entrypoints=websecure"
       - "traefik.http.routers.${APP_NAME}-supa.tls.certresolver=le"
       - "traefik.http.services.${APP_NAME}-supa.loadbalancer.server.port=8000"
 TRAEFIKEOF2
+  info "Y estas para Supabase Studio:"
+  cat <<TRAEFIKEOF3
+      - "traefik.http.routers.${APP_NAME}-studio.rule=Host(\`${STUDIO_DOMAIN}\`)"
+      - "traefik.http.routers.${APP_NAME}-studio.entrypoints=websecure"
+      - "traefik.http.routers.${APP_NAME}-studio.tls.certresolver=le"
+      - "traefik.http.services.${APP_NAME}-studio.loadbalancer.server.port=3000"
+TRAEFIKEOF3
 }
 
 case "$REVERSE_PROXY" in
@@ -1030,11 +1074,16 @@ case "$REVERSE_PROXY" in
     echo "    reverse_proxy localhost:${SUPA_API_PORT}"
     echo "  }"
     echo ""
+    echo "  ${STUDIO_DOMAIN} {"
+    echo "    reverse_proxy localhost:${SUPA_STUDIO_PORT}"
+    echo "  }"
+    echo ""
     ;;
   none)
     warn "Sin reverse proxy. La app está accesible en:"
     echo "  App:      http://TU_IP:${APP_PORT}"
     echo "  Supabase: http://TU_IP:${SUPA_API_PORT}"
+    echo "  Studio:   http://TU_IP:${SUPA_STUDIO_PORT}"
     ;;
 esac
 
@@ -1060,8 +1109,8 @@ Directorio:      ${DEPLOY_DIR}
   Puerto interno: ${SUPA_API_PORT}
 
 ── Supabase Studio ──────────────────────────────────
-  URL:            http://TU_IP:${SUPA_STUDIO_PORT}
-  (Configurar en el reverse proxy si querés exponerlo)
+  URL:            https://${STUDIO_DOMAIN}
+  Puerto interno: ${SUPA_STUDIO_PORT}
 
 ── Supabase DB ──────────────────────────────────────
   Host: 127.0.0.1:${SUPA_DB_PORT}
@@ -1094,8 +1143,8 @@ echo -e "${BOLD}${GREEN}║   Deploy completado exitosamente!                   
 echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  ${BOLD}App:${NC}            https://${APP_DOMAIN}"
-echo -e "  ${BOLD}Supabase:${NC}       https://${SUPABASE_DOMAIN}"
-echo -e "  ${BOLD}Studio:${NC}         http://TU_IP:${SUPA_STUDIO_PORT}"
+echo -e "  ${BOLD}Supabase API:${NC}   https://${SUPABASE_DOMAIN}"
+echo -e "  ${BOLD}Studio:${NC}         https://${STUDIO_DOMAIN}"
 echo ""
 echo -e "  ${BOLD}Info completa:${NC}  ${SUMMARY_FILE}"
 echo ""
