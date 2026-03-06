@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req) => {
+export default async function(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const supabase = createClient(
@@ -77,4 +77,4 @@ Respondés en no más de 3 oraciones salvo que sea necesario.`
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
-})
+}
